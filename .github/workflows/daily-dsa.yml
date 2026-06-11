@@ -1,0 +1,32 @@
+name: Daily DSA Commitment
+
+on:
+  schedule:
+    # Runs at 11:59 PM every day (adjust time as needed)
+    - cron: '59 23 * * *'
+  workflow_dispatch:  # Allows manual trigger from GitHub
+
+jobs:
+  daily-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set git config
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "DSA Bot"
+      
+      - name: Create daily record
+        run: |
+          date=$(date +"%Y-%m-%d")
+          echo "$date - Daily DSA Practice" >> DSA_COMMITS.txt
+      
+      - name: Commit and push
+        run: |
+          git add .
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Daily DSA commitment - $(date +'%b %d, %Y')" && git push)
