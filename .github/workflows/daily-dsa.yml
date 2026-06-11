@@ -1,13 +1,13 @@
-name: Daily DSA Commitment
+name: Auto Push DSA Changes
 
 on:
   schedule:
-    # Runs at 11:59 PM every day (adjust time as needed)
-    - cron: '59 23 * * *'
+    # Checks for changes every hour
+    - cron: '0 * * * *'
   workflow_dispatch:  # Allows manual trigger from GitHub
 
 jobs:
-  daily-commit:
+  push-changes:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -15,18 +15,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Set git config
         run: |
           git config --local user.email "action@github.com"
-          git config --local user.name "DSA Bot"
+          git config --local user.name "DSA Auto-Push"
       
-      - name: Create daily record
+      - name: Check for changes and push
         run: |
-          date=$(date +"%Y-%m-%d")
-          echo "$date - Daily DSA Practice" >> DSA_COMMITS.txt
-      
-      - name: Commit and push
-        run: |
-          git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Daily DSA commitment - $(date +'%b %d, %Y')" && git push)
+          # Check if there are unpushed commits
+          if [ $(git rev-list --count origin/main..HEAD) -gt 0 ]; then
+            echo "Found unpushed commits, pushing to GitHub..."
+            git push origin main
+          else
+            echo "No new commits to push"
+          fi
